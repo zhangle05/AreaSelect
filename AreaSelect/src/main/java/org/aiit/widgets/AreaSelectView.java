@@ -37,16 +37,6 @@ public class AreaSelectView extends View {
 
     Matrix matrix = new Matrix();
 
-    /**
-     * 行数
-     */
-    int row;
-
-    /**
-     * 列数
-     */
-    int column;
-
     int lastX;
     int lastY;
 
@@ -149,8 +139,6 @@ public class AreaSelectView extends View {
         seatHeight= (int) (40*yScale1);
         seatWidth= (int) (40*xScale1);
 
-        canvasWidth = (int) (column * 40*xScale1);
-        canvasHeight = (int) (row * 40*yScale1);
         paint.setColor(Color.RED);
 
         screenHeight = dip2Px(20);
@@ -187,11 +175,8 @@ public class AreaSelectView extends View {
         canvasHeight = this.getHeight();
     }
 
-    public AbstractShape getRootShape() {
-        return rootShape;
-    }
-
     public void setRootShape(AbstractShape rootShape) {
+        init();
         this.rootShape = rootShape;
         if (rootShape != null) {
             rootShape.setInvalidateCallback(new AbstractShape.InvalidateCallback() {
@@ -206,16 +191,12 @@ public class AreaSelectView extends View {
                 }
             });
         }
+        invalidate();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         long startTime = System.currentTimeMillis();
-        if (row <= 0 || column == 0) {
-            return;
-        }
-
-        canvas.drawRGB(196, 196, 196);
 
         zoom = getMatrixScaleX();
         float translateX = getTranslateX();
@@ -335,10 +316,6 @@ public class AreaSelectView extends View {
 
     Matrix tempMatrix = new Matrix();
 
-    private int getID(int row, int column) {
-        return row * this.column + (column + 1);
-    }
-
     /**
      * 自动回弹
      * 整个大小不超过控件大小的时候:
@@ -440,18 +417,6 @@ public class AreaSelectView extends View {
     Handler handler = new Handler();
 
     ArrayList<Integer> selects = new ArrayList<>();
-
-    public ArrayList<String> getSelectedSeat(){
-        ArrayList<String> results=new ArrayList<>();
-        for(int i=0;i<this.row;i++){
-            for(int j=0;j<this.column;j++){
-                if(isHave(getID(i,j))>=0){
-                    results.add(i+","+j);
-                }
-            }
-        }
-        return results;
-    }
 
     private int isHave(Integer seat) {
         return Collections.binarySearch(selects, seat);
@@ -579,13 +544,6 @@ public class AreaSelectView extends View {
 
     }
 
-    public void setData(int row, int column) {
-        this.row = row;
-        this.column = column;
-        init();
-        invalidate();
-    }
-
     ScaleGestureDetector scaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureDetector.OnScaleGestureListener() {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
@@ -624,20 +582,6 @@ public class AreaSelectView extends View {
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
             isOnClick = true;
-            int x = (int) e.getX();
-            int y = (int) e.getY();
-
-            for (int i = 0; i < row; i++) {
-                for (int j = 0; j < column; j++) {
-                    int tempX = (int) ((j * seatWidth) * getMatrixScaleX() + getTranslateX());
-                    int maxTemX = (int) (tempX + seatWidth * getMatrixScaleX());
-
-                    int tempY = (int) ((i * seatHeight) * getMatrixScaleY() + getTranslateY());
-                    int maxTempY = (int) (tempY + seatHeight * getMatrixScaleY());
-
-                }
-            }
-
             return super.onSingleTapConfirmed(e);
         }
     });

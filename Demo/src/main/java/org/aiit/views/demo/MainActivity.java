@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
                 "    ]\n" +
                 "}";
         CommunityShape community = ShapeUtil.parseCommunity(communityJson);
-        areaSelectView.setData(10,15);
         areaSelectView.setRootShape(community);
     }
 
