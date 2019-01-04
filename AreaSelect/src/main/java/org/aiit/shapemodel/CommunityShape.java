@@ -87,7 +87,10 @@ public class CommunityShape extends AbstractShape {
                 bgScale = xRatio < yRatio ? xRatio : yRatio;
             }
             if (bgScale > 0) {
-                transform.postScale(bgScale, bgScale, 0, 0);
+                Matrix m = new Matrix();
+                m.postScale(bgScale, bgScale, 0, 0);
+                m.postConcat(transform);
+                transform = m;
             }
             canvas.drawBitmap(bgBitmap, transform, paint);
         }

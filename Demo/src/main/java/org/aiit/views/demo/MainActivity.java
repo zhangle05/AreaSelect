@@ -16,8 +16,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         areaSelectView = (org.aiit.widgets.AreaSelectView) findViewById(R.id.seatView);
-//        areaSelectView.setScreenName("8号厅荧幕");//设置屏幕名称
-        areaSelectView.setMaxSelected(3);//设置最多选中
         String communityJson = "{\n" +
                 "    \"id\":1,\n" +
                 "    \"name\":\"立涛园\",\n" +
@@ -52,10 +50,8 @@ public class MainActivity extends AppCompatActivity {
                 "    ]\n" +
                 "}";
         CommunityShape community = ShapeUtil.parseCommunity(communityJson);
-        areaSelectView.setRootShape(community);
-
         areaSelectView.setData(10,15);
-
+        areaSelectView.setRootShape(community);
     }
 
 }

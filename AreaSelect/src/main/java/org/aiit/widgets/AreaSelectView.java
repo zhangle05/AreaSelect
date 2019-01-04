@@ -6,7 +6,6 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -14,9 +13,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Typeface;
 import android.os.Handler;
-import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -36,7 +33,6 @@ public class AreaSelectView extends View {
     private final boolean DEBUG = false;
 
     Paint paint = new Paint();
-    Paint overviewPaint=new Paint();
     private AbstractShape rootShape;
 
     Matrix matrix = new Matrix();
@@ -51,75 +47,23 @@ public class AreaSelectView extends View {
      */
     int column;
 
-    /**
-     * 可选时座位的图片
-     */
-    Bitmap seatBitmap;
-
-    /**
-     * 选中时座位的图片
-     */
-    Bitmap checkedSeatBitmap;
-
-    /**
-     * 座位已经售出时的图片
-     */
-    Bitmap seatSoldBitmap;
-
-    Bitmap overviewBitmap;
-
     int lastX;
     int lastY;
 
     /**
-     * 整个座位图的宽度
+     * 整个画布的宽度
      */
-    int seatBitmapWidth;
+    int canvasWidth;
 
     /**
-     * 整个座位图的高度
+     * 整个画布的高度
      */
-    int seatBitmapHeight;
-
-    /**
-     * 标识是否需要绘制座位图
-     */
-    boolean isNeedDrawSeatBitmap = true;
-
-    /**
-     * 概览图白色方块高度
-     */
-    float rectHeight;
-
-    /**
-     * 概览图白色方块的宽度
-     */
-    float rectWidth;
-
-    /**
-     * 概览图上方块的水平间距
-     */
-    float overviewSpacing;
-
-    /**
-     * 概览图上方块的垂直间距
-     */
-    float overviewVerSpacing;
-
-    /**
-     * 概览图的比例
-     */
-    float overviewScale = 4.8f;
+    int canvasHeight;
 
     /**
      * 荧幕高度
      */
     float screenHeight;
-
-    /**
-     * 荧幕默认宽度与座位图的比例
-     */
-    float screenWidthScale = 0.5f;
 
     /**
      * 荧幕最小宽度
@@ -137,72 +81,12 @@ public class AreaSelectView extends View {
      */
     boolean firstScale = true;
 
-    /**
-     * 最多可以选择的座位数量
-     */
-    int maxSelected = 1;
-
-    /**
-     * 荧幕名称
-     */
-//    private String screenName = "";
-
-    /**
-     * 整个概览图的宽度
-     */
-    float rectW;
-
-    /**
-     * 整个概览图的高度
-     */
-    float rectH;
-
     Paint headPaint;
     Bitmap headBitmap;
 
-    /**
-     * 是否第一次执行onDraw
-     */
-    boolean isFirstDraw = true;
-
-    /**
-     * 标识是否需要绘制概览图
-     */
-    boolean isDrawOverview = false;
-
-    /**
-     * 标识是否需要更新概览图
-     */
-    boolean isDrawOverviewBitmap = true;
-
-    int overview_checked;
-    int overview_sold;
     int txt_color;
-    int seatCheckedResID;
-    int seatSoldResID;
-    int seatAvailableResID;
 
     boolean isOnClick;
-
-    /**
-     * 座位已售
-     */
-    private static final int SEAT_TYPE_SOLD = 1;
-
-    /**
-     * 座位已经选中
-     */
-    private static final int SEAT_TYPE_SELECTED = 2;
-
-    /**
-     * 座位可选
-     */
-    private static final int SEAT_TYPE_AVAILABLE = 3;
-
-    /**
-     * 座位不可用
-     */
-    private static final int SEAT_TYPE_NOT_AVAILABLE = 4;
 
     private int downX, downY;
     private boolean pointer;
@@ -220,16 +104,6 @@ public class AreaSelectView extends View {
      */
     int borderHeight = 1;
     Paint redBorderPaint;
-
-    /**
-     * 默认的座位图宽度,如果使用的自己的座位图片比这个尺寸大或者小,会缩放到这个大小
-     */
-    private float defaultImgW = 40;
-
-    /**
-     * 默认的座位图高度
-     */
-    private float defaultImgH = 34;
 
     /**
      * 座位图片的宽度
@@ -252,12 +126,7 @@ public class AreaSelectView extends View {
 
     private void init(Context context,AttributeSet attrs){
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.AreaSelectView);
-        overview_checked = typedArray.getColor(R.styleable.AreaSelectView_overview_checked, Color.parseColor("#5A9E64"));
-        overview_sold = typedArray.getColor(R.styleable.AreaSelectView_overview_occupied, Color.RED);
         txt_color=typedArray.getColor(R.styleable.AreaSelectView_txt_color,Color.WHITE);
-        seatCheckedResID = typedArray.getResourceId(R.styleable.AreaSelectView_area_checked, R.drawable.seat_green);
-        seatSoldResID = typedArray.getResourceId(R.styleable.AreaSelectView_overview_occupied, R.drawable.seat_sold);
-        seatAvailableResID = typedArray.getResourceId(R.styleable.AreaSelectView_area_available, R.drawable.seat_gray);
         typedArray.recycle();
     }
 
@@ -277,16 +146,11 @@ public class AreaSelectView extends View {
     private void init() {
         defaultScreenWidth = (int) dip2Px(80);
 
-        seatBitmap = BitmapFactory.decodeResource(getResources(), seatAvailableResID);
+        seatHeight= (int) (40*yScale1);
+        seatWidth= (int) (40*xScale1);
 
-        seatHeight= (int) (seatBitmap.getHeight()*yScale1);
-        seatWidth= (int) (seatBitmap.getWidth()*xScale1);
-
-        checkedSeatBitmap = BitmapFactory.decodeResource(getResources(), seatCheckedResID);
-        seatSoldBitmap = BitmapFactory.decodeResource(getResources(), seatSoldResID);
-
-        seatBitmapWidth = (int) (column * seatBitmap.getWidth()*xScale1);
-        seatBitmapHeight = (int) (row * seatBitmap.getHeight()*yScale1);
+        canvasWidth = (int) (column * 40*xScale1);
+        canvasHeight = (int) (row * 40*yScale1);
         paint.setColor(Color.RED);
 
         screenHeight = dip2Px(20);
@@ -310,15 +174,6 @@ public class AreaSelectView extends View {
 
         rectF = new RectF();
 
-        rectHeight = seatHeight / overviewScale;
-        rectWidth = seatWidth / overviewScale;
-        overviewSpacing = 0;
-        overviewVerSpacing = 0;
-
-        rectW = column * rectWidth + (column - 1) * overviewSpacing + overviewSpacing * 2;
-        rectH = row * rectHeight + (row - 1) * overviewVerSpacing + overviewVerSpacing * 2;
-        overviewBitmap = Bitmap.createBitmap((int) rectW, (int) rectH, Bitmap.Config.ARGB_4444);
-
         matrix.postTranslate(0, headHeight + screenHeight + borderHeight);
 
     }
@@ -328,6 +183,8 @@ public class AreaSelectView extends View {
         if (rootShape != null) {
             rootShape.setBoundLimit(this.getWidth(), this.getHeight());
         }
+        canvasWidth = this.getWidth();
+        canvasHeight = this.getHeight();
     }
 
     public AbstractShape getRootShape() {
@@ -378,16 +235,6 @@ public class AreaSelectView extends View {
         }
         canvas.drawBitmap(headBitmap, 0, 0, null);
 
-        if (isDrawOverview) {
-            long s = System.currentTimeMillis();
-            if (isDrawOverviewBitmap) {
-                drawOverview();
-            }
-            canvas.drawBitmap(overviewBitmap, 0, 0, null);
-            drawOverview(canvas);
-            Log.d("drawTime", "OverviewDrawTime:" + (System.currentTimeMillis() - s));
-        }
-
         if (DEBUG) {
             long drawTime = System.currentTimeMillis() - startTime;
             Log.d("drawTime", "totalDrawTime:" + drawTime);
@@ -412,8 +259,6 @@ public class AreaSelectView extends View {
                 pointer = false;
                 downX = x;
                 downY = y;
-                isDrawOverview = true;
-                handler.removeCallbacks(hideOverviewRunnable);
                 invalidate();
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -429,8 +274,6 @@ public class AreaSelectView extends View {
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                handler.postDelayed(hideOverviewRunnable, 1500);
-
                 autoScale();
                 int downDX = Math.abs(x - downX);
                 int downDY = Math.abs(y - downY);
@@ -447,23 +290,15 @@ public class AreaSelectView extends View {
         return true;
     }
 
-    private Runnable hideOverviewRunnable = new Runnable() {
-        @Override
-        public void run() {
-            isDrawOverview = false;
-            invalidate();
-        }
-    };
-
     Bitmap drawHeadInfo() {
         String txt = "已售";
         float txtY = getBaseLine(headPaint, 0, headHeight);
         int txtWidth = (int) headPaint.measureText(txt);
         float spacing = dip2Px(10);
         float spacing1 = dip2Px(5);
-        float y = (headHeight - seatBitmap.getHeight()) / 2;
+        float y = (headHeight - 40) / 2;
 
-        float width = seatBitmap.getWidth() + spacing1 + txtWidth + spacing + seatSoldBitmap.getWidth() + txtWidth + spacing1 + spacing + checkedSeatBitmap.getHeight() + spacing1 + txtWidth;
+        float width = 40 + spacing1 + txtWidth + spacing + 40 + txtWidth + spacing1 + spacing + 40 + spacing1 + txtWidth;
         Bitmap bitmap = Bitmap.createBitmap(getWidth(), (int) headHeight, Bitmap.Config.ARGB_8888);
 
         Canvas canvas = new Canvas(bitmap);
@@ -475,20 +310,20 @@ public class AreaSelectView extends View {
         float startX = (getWidth() - width) / 2;
         tempMatrix.setScale(xScale1,yScale1);
         tempMatrix.postTranslate(startX,(headHeight - seatHeight) / 2);
-        canvas.drawBitmap(seatBitmap, tempMatrix, headPaint);
+//        canvas.drawBitmap(seatBitmap, tempMatrix, headPaint);
         canvas.drawText("可选", startX + seatWidth + spacing1, txtY, headPaint);
 
-        float soldSeatBitmapY = startX + seatBitmap.getWidth() + spacing1 + txtWidth + spacing;
+//        float soldSeatBitmapY = startX + seatBitmap.getWidth() + spacing1 + txtWidth + spacing;
         tempMatrix.setScale(xScale1,yScale1);
-        tempMatrix.postTranslate(soldSeatBitmapY,(headHeight - seatHeight) / 2);
-        canvas.drawBitmap(seatSoldBitmap, tempMatrix, headPaint);
-        canvas.drawText("已租完", soldSeatBitmapY + seatWidth + spacing1, txtY, headPaint);
+//        tempMatrix.postTranslate(soldSeatBitmapY,(headHeight - seatHeight) / 2);
+//        canvas.drawBitmap(seatSoldBitmap, tempMatrix, headPaint);
+//        canvas.drawText("已租完", soldSeatBitmapY + seatWidth + spacing1, txtY, headPaint);
 
-        float checkedSeatBitmapX = soldSeatBitmapY + seatSoldBitmap.getWidth() + spacing1 + txtWidth + spacing;
+//        float checkedSeatBitmapX = soldSeatBitmapY + seatSoldBitmap.getWidth() + spacing1 + txtWidth + spacing;
         tempMatrix.setScale(xScale1,yScale1);
-        tempMatrix.postTranslate(checkedSeatBitmapX,y);
-        canvas.drawBitmap(checkedSeatBitmap, tempMatrix, headPaint);
-        canvas.drawText("已选", checkedSeatBitmapX + spacing1 + seatWidth, txtY, headPaint);
+//        tempMatrix.postTranslate(checkedSeatBitmapX,y);
+//        canvas.drawBitmap(checkedSeatBitmap, tempMatrix, headPaint);
+//        canvas.drawText("已选", checkedSeatBitmapX + spacing1 + seatWidth, txtY, headPaint);
 
         //绘制分割线
         headPaint.setStrokeWidth(1);
@@ -500,139 +335,8 @@ public class AreaSelectView extends View {
 
     Matrix tempMatrix = new Matrix();
 
-    private int getSeatType(int row, int column) {
-
-        if (isHave(getID(row, column)) >= 0) {
-            return SEAT_TYPE_SELECTED;
-        }
-
-        return SEAT_TYPE_AVAILABLE;
-    }
-
     private int getID(int row, int column) {
         return row * this.column + (column + 1);
-    }
-
-    /**
-     * 绘制选中座位的行号列号
-     *
-     * @param row
-     * @param column
-     */
-    private void drawText(Canvas canvas, int row, int column, float top, float left) {
-
-        String txt = (row + 1) + "排";
-        String txt1 = (column + 1) + "座";
-
-        TextPaint txtPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        txtPaint.setColor(txt_color);
-        txtPaint.setTypeface(Typeface.DEFAULT_BOLD);
-        float seatHeight = this.seatHeight * getMatrixScaleX();
-        float seatWidth = this.seatWidth * getMatrixScaleX();
-        txtPaint.setTextSize(seatHeight / 3);
-
-        //获取中间线
-        float center = seatHeight / 2;
-        float txtWidth = txtPaint.measureText(txt);
-        float startX = left + seatWidth / 2 - txtWidth / 2;
-
-        //只绘制一行文字
-        if(txt1==null){
-            canvas.drawText(txt, startX, getBaseLine(txtPaint, top, top + seatHeight), txtPaint);
-        }else {
-            canvas.drawText(txt, startX, getBaseLine(txtPaint, top, top + center), txtPaint);
-            canvas.drawText(txt1, startX, getBaseLine(txtPaint, top + center, top + center + seatHeight / 2), txtPaint);
-        }
-
-        if (DEBUG) {
-            Log.d("drawTest:", "top:" + top);
-        }
-    }
-
-    int bacColor = Color.parseColor("#7e000000");
-
-    /**
-     * 绘制概览图
-     */
-    void drawOverview(Canvas canvas) {
-
-        //绘制红色框
-        int left = (int) -getTranslateX();
-        if (left < 0) {
-            left = 0;
-        }
-        left /= overviewScale;
-        left /= getMatrixScaleX();
-
-        int currentWidth = (int) (getTranslateX() + (column * seatWidth));
-        if (currentWidth > getWidth()) {
-            currentWidth = currentWidth - getWidth();
-        } else {
-            currentWidth = 0;
-        }
-        int right = (int) (rectW - currentWidth / overviewScale / getMatrixScaleX());
-
-        float top = -getTranslateY() + headHeight;
-        if (top < 0) {
-            top = 0;
-        }
-        top /= overviewScale;
-        top /= getMatrixScaleY();
-        if (top > 0) {
-            top += overviewVerSpacing;
-        }
-
-        int currentHeight = (int) (getTranslateY() + (row * seatHeight) * getMatrixScaleY());
-        if (currentHeight > getHeight()) {
-            currentHeight = currentHeight - getHeight();
-        } else {
-            currentHeight = 0;
-        }
-        int bottom = (int) (rectH - currentHeight / overviewScale / getMatrixScaleY());
-
-        canvas.drawRect(left, top, right, bottom, redBorderPaint);
-    }
-
-    Bitmap drawOverview() {
-        isDrawOverviewBitmap = false;
-
-        int bac = Color.parseColor("#7e000000");
-        overviewPaint.setColor(bac);
-        overviewPaint.setAntiAlias(true);
-        overviewPaint.setStyle(Paint.Style.FILL);
-        overviewBitmap.eraseColor(Color.TRANSPARENT);
-        Canvas canvas = new Canvas(overviewBitmap);
-        //绘制透明灰色背景
-        canvas.drawRect(0, 0, rectW, rectH, overviewPaint);
-
-        overviewPaint.setColor(Color.WHITE);
-        for (int i = 0; i < row; i++) {
-            float top = i * rectHeight + i * overviewVerSpacing + overviewVerSpacing;
-            for (int j = 0; j < column; j++) {
-
-                int seatType = getSeatType(i, j);
-                switch (seatType) {
-                    case SEAT_TYPE_AVAILABLE:
-                        overviewPaint.setColor(Color.WHITE);
-                        break;
-                    case SEAT_TYPE_NOT_AVAILABLE:
-                        continue;
-                    case SEAT_TYPE_SELECTED:
-                        overviewPaint.setColor(overview_checked);
-                        break;
-                    case SEAT_TYPE_SOLD:
-                        overviewPaint.setColor(overview_sold);
-                        break;
-                }
-
-                float left;
-
-                left = j * rectWidth + j * overviewSpacing + overviewSpacing;
-                canvas.drawRect(left, top, left + rectWidth, top + rectHeight, overviewPaint);
-            }
-        }
-
-        return overviewBitmap;
     }
 
     /**
@@ -647,71 +351,74 @@ public class AreaSelectView extends View {
      * 往上滑动,回弹到底部,往下滑动回弹到顶部
      */
     private void autoScroll() {
-        float currentSeatBitmapWidth = seatBitmapWidth * getMatrixScaleX();
-        float currentSeatBitmapHeight = seatBitmapHeight * getMatrixScaleY();
+        float scaleX = getMatrixScaleX();
+        float scaleY = getMatrixScaleY();
+        float translateX = getTranslateX();
+        float translateY = getTranslateY();
+        float currentSeatBitmapWidth = canvasWidth * scaleX;
+        float currentSeatBitmapHeight = canvasHeight * scaleY;
         float moveYLength = 0;
         float moveXLength = 0;
 
         //处理左右滑动的情况
         if (currentSeatBitmapWidth < getWidth()) {
-            if (getTranslateX() < 0 || getMatrixScaleX() < 0) {
+            if (translateX < 0 || scaleX < 0) {
                 //计算要移动的距离
-                if (getTranslateX() < 0) {
-                    moveXLength = (-getTranslateX());
+                if (translateX < 0) {
+                    moveXLength = (-translateX);
                 } else {
-                    moveXLength = 0 - getTranslateX();
+                    moveXLength = 0 - translateX;
                 }
             } else {
-                if (getTranslateX() < 0) {
-                    moveXLength = (-getTranslateX());
+                if (translateX < 0) {
+                    moveXLength = (-translateX);
                 } else {
-                    moveXLength = 0 - getTranslateX();
+                    moveXLength = 0 - translateX;
                 }
             }
         } else {
-
-            if (getTranslateX() < 0 && getTranslateX() + currentSeatBitmapWidth > getWidth()) {
+            if (translateX < 0 && translateX + currentSeatBitmapWidth > getWidth()) {
 
             } else {
                 //往左侧滑动
-                if (getTranslateX() + currentSeatBitmapWidth < getWidth()) {
-                    moveXLength = getWidth() - (getTranslateX() + currentSeatBitmapWidth);
+                if (translateX + currentSeatBitmapWidth < getWidth()) {
+                    moveXLength = getWidth() - (translateX + currentSeatBitmapWidth);
                 } else {
                     //右侧滑动
-                    moveXLength = -getTranslateX();
+                    moveXLength = -translateX;
                 }
             }
 
         }
 
-        float startYPosition = screenHeight * getMatrixScaleY() + headHeight + borderHeight;
+        float startYPosition = screenHeight * scaleY + headHeight + borderHeight;
 
         //处理上下滑动
         if (currentSeatBitmapHeight+headHeight < getHeight()) {
 
-            if (getTranslateY() < startYPosition) {
-                moveYLength = startYPosition - getTranslateY();
+            if (translateY < startYPosition) {
+                moveYLength = startYPosition - translateY;
             } else {
-                moveYLength = -(getTranslateY() - (startYPosition));
+                moveYLength = -(translateY - (startYPosition));
             }
 
         } else {
 
-            if (getTranslateY() < 0 && getTranslateY() + currentSeatBitmapHeight > getHeight()) {
+            if (translateY < 0 && translateY + currentSeatBitmapHeight > getHeight()) {
 
             } else {
                 //往上滑动
-                if (getTranslateY() + currentSeatBitmapHeight < getHeight()) {
-                    moveYLength = getHeight() - (getTranslateY() + currentSeatBitmapHeight);
+                if (translateY + currentSeatBitmapHeight < getHeight()) {
+                    moveYLength = getHeight() - (translateY + currentSeatBitmapHeight);
                 } else {
-                    moveYLength = -(getTranslateY() - (startYPosition));
+                    moveYLength = -(translateY - (startYPosition));
                 }
             }
         }
 
         Point start = new Point();
-        start.x = (int) getTranslateX();
-        start.y = (int) getTranslateY();
+        start.x = (int) translateX;
+        start.y = (int) translateY;
 
         Point end = new Point();
         end.x = (int) (start.x + moveXLength);
@@ -934,59 +641,5 @@ public class AreaSelectView extends View {
             return super.onSingleTapConfirmed(e);
         }
     });
-
-    private void addChooseSeat(int row, int column) {
-        int id = getID(row, column);
-        for (int i = 0; i < selects.size(); i++) {
-            int item = selects.get(i);
-            if (id < item) {
-                selects.add(i, id);
-                return;
-            }
-        }
-
-        selects.add(id);
-    }
-
-    public interface SeatChecker {
-        /**
-         * 是否可用座位
-         *
-         * @param row
-         * @param column
-         * @return
-         */
-        boolean isValidSeat(int row, int column);
-
-        /**
-         * 是否已售
-         *
-         * @param row
-         * @param column
-         * @return
-         */
-        boolean isSold(int row, int column);
-
-        void checked(int row, int column);
-
-        void unCheck(int row, int column);
-
-        /**
-         * 获取选中后座位上显示的文字
-         * @param row
-         * @param column
-         * @return 返回2个元素的数组,第一个元素是第一行的文字,第二个元素是第二行文字,如果只返回一个元素则会绘制到座位图的中间位置
-         */
-        String[] checkedSeatTxt(int row,int column);
-
-    }
-
-//    public void setScreenName(String screenName) {
-//        this.screenName = screenName;
-//    }
-
-    public void setMaxSelected(int maxSelected) {
-        this.maxSelected = maxSelected;
-    }
 
 }
