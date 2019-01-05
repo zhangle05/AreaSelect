@@ -83,7 +83,20 @@ public abstract class AbstractShape {
         // Root shapes should override this method to draw legend
     }
 
+    public void drawInfo(Canvas canvas, RectF bound) {
+        // Root shapes should override this method to draw extra info
+    }
+
+    public AbstractShape getSelectedShape() {
+        if (this.selected) {
+            return this;
+        }
+        return null;
+    }
+
     public abstract void draw(Canvas canvas, Matrix transform);
+
+    public abstract boolean onSingleTap(float x, float y);
 
     public interface InvalidateCallback {
         void invalidate(Rect area);

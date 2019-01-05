@@ -2,10 +2,12 @@ package org.aiit.shapemodel;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.Handler;
 
 import org.json.JSONArray;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class CommunityShape extends AbstractShape {
+    private Paint infoPaint;
     private Bitmap bgBitmap;
     private String bgImageUrl;
     private float bgScale = 0;
@@ -26,6 +29,10 @@ public class CommunityShape extends AbstractShape {
 
     public CommunityShape(String id) {
         super(id);
+        infoPaint = new Paint();
+        infoPaint.setColor(Color.BLACK);
+        Typeface infoFont = Typeface.create("黑体", Typeface.BOLD);
+        infoPaint.setTypeface(infoFont);
     }
 
     public String getBgImageUrl() {
@@ -108,8 +115,8 @@ public class CommunityShape extends AbstractShape {
         if (legendList == null) {
             legendList = new ArrayList<BuildingSiteShape>();
             float width = bound.width() / 7;
-            float height = bound.height() / 2;
-            float top = bound.top + bound.height() / 4;
+            float height = bound.height() / 1.5F;
+            float top = bound.top + 5;
 
             BuildingSiteShape available = new BuildingSiteShape(UUID.randomUUID().toString());
             available.setName("可选");
@@ -134,6 +141,47 @@ public class CommunityShape extends AbstractShape {
         for (BuildingSiteShape s : legendList) {
             s.draw(canvas, null);
         }
+    }
+
+    @Override
+    public void drawInfo(Canvas canvas, RectF bound) {
+        AbstractShape selected = this.getSelectedShape();
+        String info = "当前小区：" + name + "；   已选择：";
+        if (selected == null) {
+            info += "无。";
+        } else {
+            info += selected.name + "。";
+        }
+        float txtSize = bound.height() / 2;
+        infoPaint.setTextSize(txtSize);
+        float txtWidth = infoPaint.measureText(info);
+        float x = bound.left + (bound.width() - txtWidth) / 2;
+        float y = bound.bottom - (bound.height() - txtSize) / 2;
+
+        canvas.drawText(info, x, y, infoPaint);
+    }
+
+    @Override
+    public AbstractShape getSelectedShape() {
+        for (BuildingSiteShape s : buildingSiteShapeList) {
+            if (s.selected) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean onSingleTap(float x, float y) {
+        for (BuildingSiteShape s : buildingSiteShapeList) {
+            s.setSelected(false);
+        }
+        for (BuildingSiteShape s : buildingSiteShapeList) {
+            if (s.onSingleTap(x, y)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

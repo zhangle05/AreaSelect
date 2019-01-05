@@ -5,7 +5,6 @@ import android.animation.TypeEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -13,7 +12,6 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -26,20 +24,17 @@ import org.aiit.views.areaselect.R;
 
 import org.aiit.shapemodel.AbstractShape;
 
-import java.util.ArrayList;
-import java.util.Collections;
-
 public class AreaSelectView extends View {
     private final boolean DEBUG = false;
-
-    Paint paint = new Paint();
     private AbstractShape rootShape;
-
+    private RectF headRect;
+    private RectF infoRect;
+    Paint paint = new Paint();
     Matrix matrix = new Matrix();
-
+    float xScale1 = 1;
+    float yScale1 = 1;
     int lastX;
     int lastY;
-
     /**
      * 整个画布的宽度
      */
@@ -49,17 +44,6 @@ public class AreaSelectView extends View {
      * 整个画布的高度
      */
     int canvasHeight;
-
-    /**
-     * 荧幕高度
-     */
-    float screenHeight;
-
-    /**
-     * 荧幕最小宽度
-     */
-    int defaultScreenWidth;
-
     /**
      * 标识是否正在缩放
      */
@@ -70,39 +54,21 @@ public class AreaSelectView extends View {
      * 是否是第一次缩放
      */
     boolean firstScale = true;
-
-    Paint headPaint;
-    Bitmap headBitmap;
-    RectF headRect;
-    int txt_color;
-
     boolean isOnClick;
-
     private int downX, downY;
     private boolean pointer;
-
     /**
-     * 顶部高度,可选,已选,已售区域的高度
+     * 顶部图例高度
      */
     float headHeight;
-    Paint pathPaint;
-    RectF rectF;
-
     /**
      * 头部下面横线的高度
      */
     int borderHeight = 1;
-    Paint redBorderPaint;
-
     /**
-     * 座位图片的宽度
+     * 信息区高度
      */
-    private int seatWidth;
-
-    /**
-     * 座位图片的高度
-     */
-    private int seatHeight;
+    float infoHeight;
 
     public AreaSelectView(Context context) {
         super(context);
@@ -115,7 +81,6 @@ public class AreaSelectView extends View {
 
     private void init(Context context,AttributeSet attrs){
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.AreaSelectView);
-        txt_color=typedArray.getColor(R.styleable.AreaSelectView_txt_color,Color.WHITE);
         typedArray.recycle();
     }
 
@@ -129,40 +94,11 @@ public class AreaSelectView extends View {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
-    float xScale1 = 1;
-    float yScale1 = 1;
-
     private void init() {
-        defaultScreenWidth = (int) dip2Px(80);
-
-        seatHeight= (int) (40*yScale1);
-        seatWidth= (int) (40*xScale1);
-
         paint.setColor(Color.RED);
-
-        screenHeight = dip2Px(20);
+        infoHeight = dip2Px(30);
         headHeight = dip2Px(30);
-
-        headPaint = new Paint();
-        headPaint.setStyle(Paint.Style.FILL);
-        headPaint.setTextSize(24);
-        headPaint.setColor(Color.WHITE);
-        headPaint.setAntiAlias(true);
-
-        pathPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        pathPaint.setStyle(Paint.Style.FILL);
-        pathPaint.setColor(Color.parseColor("#e2e2e2"));
-
-        redBorderPaint = new Paint();
-        redBorderPaint.setAntiAlias(true);
-        redBorderPaint.setColor(Color.RED);
-        redBorderPaint.setStyle(Paint.Style.STROKE);
-        redBorderPaint.setStrokeWidth(getResources().getDisplayMetrics().density * 1);
-
-        rectF = new RectF();
-
-        matrix.postTranslate(0, headHeight + screenHeight + borderHeight);
-
+        matrix.postTranslate(0, headHeight + infoHeight + borderHeight);
     }
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -211,7 +147,11 @@ public class AreaSelectView extends View {
             if (headRect == null) {
                 headRect = new RectF(0, 0, canvas.getWidth(), headHeight);
             }
+            if (infoRect == null) {
+                infoRect = new RectF(0, headHeight + borderHeight, canvas.getWidth(), headHeight + borderHeight + infoHeight);
+            }
             rootShape.drawLegend(canvas, headRect);
+            rootShape.drawInfo(canvas, infoRect);
         }
         if (DEBUG) {
             long drawTime = System.currentTimeMillis() - startTime;
@@ -258,58 +198,13 @@ public class AreaSelectView extends View {
                 if ((downDX > 10 || downDY > 10) && !pointer) {
                     autoScroll();
                 }
-
                 break;
         }
         isOnClick = false;
         lastY = y;
         lastX = x;
-
         return true;
     }
-//
-//    Bitmap drawHeadInfo() {
-//        String txt = "已售";
-//        float txtY = getBaseLine(headPaint, 0, headHeight);
-//        int txtWidth = (int) headPaint.measureText(txt);
-//        float spacing = dip2Px(10);
-//        float spacing1 = dip2Px(5);
-//        float y = (headHeight - 40) / 2;
-//
-//        float width = 40 + spacing1 + txtWidth + spacing + 40 + txtWidth + spacing1 + spacing + 40 + spacing1 + txtWidth;
-//        Bitmap bitmap = Bitmap.createBitmap(getWidth(), (int) headHeight, Bitmap.Config.ARGB_8888);
-//
-//        Canvas canvas = new Canvas(bitmap);
-//
-//        //绘制背景
-//        canvas.drawRect(0, 0, getWidth(), headHeight, headPaint);
-//        headPaint.setColor(Color.BLACK);
-//
-//        float startX = (getWidth() - width) / 2;
-//        tempMatrix.setScale(xScale1,yScale1);
-//        tempMatrix.postTranslate(startX,(headHeight - seatHeight) / 2);
-////        canvas.drawBitmap(seatBitmap, tempMatrix, headPaint);
-//        canvas.drawText("可选", startX + seatWidth + spacing1, txtY, headPaint);
-//
-////        float soldSeatBitmapY = startX + seatBitmap.getWidth() + spacing1 + txtWidth + spacing;
-//        tempMatrix.setScale(xScale1,yScale1);
-////        tempMatrix.postTranslate(soldSeatBitmapY,(headHeight - seatHeight) / 2);
-////        canvas.drawBitmap(seatSoldBitmap, tempMatrix, headPaint);
-////        canvas.drawText("已租完", soldSeatBitmapY + seatWidth + spacing1, txtY, headPaint);
-//
-////        float checkedSeatBitmapX = soldSeatBitmapY + seatSoldBitmap.getWidth() + spacing1 + txtWidth + spacing;
-//        tempMatrix.setScale(xScale1,yScale1);
-////        tempMatrix.postTranslate(checkedSeatBitmapX,y);
-////        canvas.drawBitmap(checkedSeatBitmap, tempMatrix, headPaint);
-////        canvas.drawText("已选", checkedSeatBitmapX + spacing1 + seatWidth, txtY, headPaint);
-//
-//        //绘制分割线
-//        headPaint.setStrokeWidth(1);
-//        headPaint.setColor(Color.GRAY);
-//        canvas.drawLine(0, headHeight, getWidth(), headHeight, headPaint);
-//        return bitmap;
-//
-//    }
 
     Matrix tempMatrix = new Matrix();
 
@@ -365,7 +260,7 @@ public class AreaSelectView extends View {
 
         }
 
-        float startYPosition = screenHeight * scaleY + headHeight + borderHeight;
+        float startYPosition = infoHeight * scaleY + headHeight + borderHeight;
 
         //处理上下滑动
         if (currentSeatBitmapHeight+headHeight < getHeight()) {
@@ -411,18 +306,6 @@ public class AreaSelectView extends View {
         }
     }
 
-    Handler handler = new Handler();
-
-    ArrayList<Integer> selects = new ArrayList<>();
-
-    private int isHave(Integer seat) {
-        return Collections.binarySearch(selects, seat);
-    }
-
-    private void remove(int index) {
-        selects.remove(index);
-    }
-
     float[] m = new float[9];
 
     private float getTranslateX() {
@@ -447,12 +330,6 @@ public class AreaSelectView extends View {
 
     private float dip2Px(float value) {
         return getResources().getDisplayMetrics().density * value;
-    }
-
-    private float getBaseLine(Paint p, float top, float bottom) {
-        Paint.FontMetrics fontMetrics = p.getFontMetrics();
-        int baseline = (int) ((bottom + top - fontMetrics.bottom - fontMetrics.top) / 2);
-        return baseline;
     }
 
     private void moveAnimate(Point start, Point end) {
@@ -577,8 +454,14 @@ public class AreaSelectView extends View {
 
     GestureDetector gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
         @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
+        public boolean onSingleTapUp(MotionEvent e) {
             isOnClick = true;
+            float x = e.getX();
+            float y = e.getY();
+            if (rootShape != null) {
+                rootShape.onSingleTap(x, y);
+                invalidate();
+            }
             return super.onSingleTapConfirmed(e);
         }
     });

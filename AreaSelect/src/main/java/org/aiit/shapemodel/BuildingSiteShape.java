@@ -15,6 +15,8 @@ public class BuildingSiteShape extends AbstractShape {
     private Paint textPaint;
     private Paint boundPaint;
     private Typeface textFont;
+    private Typeface selectedTextFont;
+    private RectF drawRect;
 
     public BuildingSiteShape(String id) {
         super(id);
@@ -26,6 +28,7 @@ public class BuildingSiteShape extends AbstractShape {
         textPaint = new Paint();
         textPaint.setColor(Color.BLACK);
         textFont = Typeface.create("黑体", Typeface.NORMAL);
+        selectedTextFont = Typeface.create("黑体", Typeface.BOLD);
         textPaint.setTypeface(textFont);
     }
 
@@ -36,12 +39,11 @@ public class BuildingSiteShape extends AbstractShape {
 
     @Override
     public void draw(Canvas canvas, Matrix transform) {
-        RectF r = new RectF(super.bound);
+        drawRect = new RectF(super.bound);
         if (transform != null) {
-            transform.mapRect(r);
+            transform.mapRect(drawRect);
         }
         // draw bound
-        canvas.drawRect(r, defaultPaint);
         if (!this.available) {
             boundPaint.setColor(Color.RED);
             boundPaint.setStyle(Paint.Style.FILL_AND_STROKE);
@@ -50,19 +52,36 @@ public class BuildingSiteShape extends AbstractShape {
             boundPaint.setColor(Color.BLUE);
             boundPaint.setStrokeWidth(5);
             textPaint.setColor(Color.BLUE);
+            textPaint.setTypeface(selectedTextFont);
+            defaultPaint.setColor(Color.parseColor("#e2FFe2"));
         } else {
             boundPaint.setColor(Color.BLACK);
             boundPaint.setStrokeWidth(3);
             textPaint.setColor(Color.BLACK);
+            textPaint.setTypeface(textFont);
+            defaultPaint.setColor(Color.parseColor("#e2e2e2"));
         }
-        canvas.drawRect(r, boundPaint);
+        canvas.drawRect(drawRect, defaultPaint);
+        canvas.drawRect(drawRect, boundPaint);
 
         // draw name
-        float textSize = super.bound.height() / 2 * (r.width() / super.bound.width());
+        float textSize = super.bound.height() / 2 * (drawRect.width() / super.bound.width());
         textPaint.setTextSize(textSize);
         float txtWidth = textPaint.measureText(super.name);
-        float x = r.left + (r.width() - txtWidth) / 2;
-        float y = r.bottom - (r.height() - textSize) / 2;
+        float x = drawRect.left + (drawRect.width() - txtWidth) / 2;
+        float y = drawRect.bottom - (drawRect.height() - textSize) / 2;
         canvas.drawText(super.name, x, y, textPaint);
+    }
+
+    @Override
+    public boolean onSingleTap(float x, float y) {
+        if (!this.available || !this.selectable || drawRect == null) {
+            return false;
+        }
+        if (drawRect.contains(x, y)) {
+            this.selected = !this.selected;
+            return true;
+        }
+        return false;
     }
 }
