@@ -2,13 +2,69 @@ package org.aiit.views.demo;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 
+import org.aiit.shapemodel.AbstractShape;
 import org.aiit.shapemodel.CommunityShape;
 import org.aiit.shapemodel.ShapeUtil;
 
 public class MainActivity extends AppCompatActivity {
     public org.aiit.widgets.AreaSelectView areaSelectView;
+    /**
+     * community sample json:
+     * {
+     *     "id":"1",
+     *     "name":"立涛园",
+     *     "bound":{
+     *         "left":0,
+     *         "top":0,
+     *         "right":1334,
+     *         "bottom":1000
+     *     },
+     *     "bgImageUrl":"https://res.co188.com/data/drawing/img640/306151284459805.jpg",
+     *     "buildingSiteShapeList":[
+     *         {
+     *             "id":"2",
+     *             "name":"1号楼",
+     *             "available":false,
+     *             "bound":{
+     *                 "left":130,
+     *                 "top":165,
+     *                 "right":165,
+     *                 "bottom":189
+     *             }
+     *         },
+     *         {
+     *             "id":"3",
+     *             "name":"2号楼",
+     *             "available":true,
+     *             "bound":{
+     *                 "left":130,
+     *                 "top":205,
+     *                 "right":183,
+     *                 "bottom":222
+     *             }
+     *         },
+     *         {
+     *             "id":"4",
+     *             "name":"3号楼",
+     *             "available":true,
+     *             "bound":{
+     *                 "left":200,
+     *                 "top":200,
+     *                 "right":235,
+     *                 "bottom":224
+     *             }
+     *         }
+     *     ]
+     * }
+     */
+    private CommunityShape community;
+    private Button btnNext;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,8 +118,25 @@ public class MainActivity extends AppCompatActivity {
                 "        }\n" +
                 "    ]\n" +
                 "}";
-        CommunityShape community = ShapeUtil.parseCommunity(communityJson);
+        community = ShapeUtil.parseCommunity(communityJson);
         areaSelectView.setRootShape(community);
+
+        btnNext = (Button)findViewById(R.id.next);
+        btnNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (community == null) {
+                    Toast.makeText(MainActivity.this, "未找到小区信息", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                AbstractShape selected = community.getSelectedShape();
+                if (selected == null) {
+                    Toast.makeText(MainActivity.this, "请先选择楼栋", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Toast.makeText(MainActivity.this, "已选择：" + selected.getName(), Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
 }
