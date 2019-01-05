@@ -17,7 +17,7 @@ import java.util.Set;
 
 public class ShapeUtil {
 
-    private static Map<Integer, AbstractShape> S_SHAPE_MAP = new HashMap<Integer, AbstractShape>();
+    private static Map<String, AbstractShape> S_SHAPE_MAP = new HashMap<String, AbstractShape>();
 
     public static void addShape(AbstractShape shape) {
         if (S_SHAPE_MAP.containsKey(shape.id)) {
@@ -29,7 +29,7 @@ public class ShapeUtil {
     public static CommunityShape parseCommunity(String jsonStr) {
         try {
             JSONObject json = new JSONObject(jsonStr);
-            int id = json.optInt("id");
+            String id = json.optString("id");
             CommunityShape result = new CommunityShape(id);
             result.initWithJson(json);
             return result;

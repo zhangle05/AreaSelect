@@ -73,7 +73,7 @@ public class AreaSelectView extends View {
 
     Paint headPaint;
     Bitmap headBitmap;
-
+    RectF headRect;
     int txt_color;
 
     boolean isOnClick;
@@ -85,7 +85,6 @@ public class AreaSelectView extends View {
      * 顶部高度,可选,已选,已售区域的高度
      */
     float headHeight;
-
     Paint pathPaint;
     RectF rectF;
 
@@ -208,14 +207,12 @@ public class AreaSelectView extends View {
         tempMatrix.postScale(scaleX, scaleY, translateX, translateY);
 
         if (rootShape != null) {
-            rootShape.draw(canvas, tempMatrix, pathPaint);
+            rootShape.draw(canvas, tempMatrix);
+            if (headRect == null) {
+                headRect = new RectF(0, 0, canvas.getWidth(), headHeight);
+            }
+            rootShape.drawLegend(canvas, headRect);
         }
-
-        if (headBitmap == null) {
-            headBitmap = drawHeadInfo();
-        }
-        canvas.drawBitmap(headBitmap, 0, 0, null);
-
         if (DEBUG) {
             long drawTime = System.currentTimeMillis() - startTime;
             Log.d("drawTime", "totalDrawTime:" + drawTime);
@@ -270,49 +267,49 @@ public class AreaSelectView extends View {
 
         return true;
     }
-
-    Bitmap drawHeadInfo() {
-        String txt = "已售";
-        float txtY = getBaseLine(headPaint, 0, headHeight);
-        int txtWidth = (int) headPaint.measureText(txt);
-        float spacing = dip2Px(10);
-        float spacing1 = dip2Px(5);
-        float y = (headHeight - 40) / 2;
-
-        float width = 40 + spacing1 + txtWidth + spacing + 40 + txtWidth + spacing1 + spacing + 40 + spacing1 + txtWidth;
-        Bitmap bitmap = Bitmap.createBitmap(getWidth(), (int) headHeight, Bitmap.Config.ARGB_8888);
-
-        Canvas canvas = new Canvas(bitmap);
-
-        //绘制背景
-        canvas.drawRect(0, 0, getWidth(), headHeight, headPaint);
-        headPaint.setColor(Color.BLACK);
-
-        float startX = (getWidth() - width) / 2;
-        tempMatrix.setScale(xScale1,yScale1);
-        tempMatrix.postTranslate(startX,(headHeight - seatHeight) / 2);
-//        canvas.drawBitmap(seatBitmap, tempMatrix, headPaint);
-        canvas.drawText("可选", startX + seatWidth + spacing1, txtY, headPaint);
-
-//        float soldSeatBitmapY = startX + seatBitmap.getWidth() + spacing1 + txtWidth + spacing;
-        tempMatrix.setScale(xScale1,yScale1);
-//        tempMatrix.postTranslate(soldSeatBitmapY,(headHeight - seatHeight) / 2);
-//        canvas.drawBitmap(seatSoldBitmap, tempMatrix, headPaint);
-//        canvas.drawText("已租完", soldSeatBitmapY + seatWidth + spacing1, txtY, headPaint);
-
-//        float checkedSeatBitmapX = soldSeatBitmapY + seatSoldBitmap.getWidth() + spacing1 + txtWidth + spacing;
-        tempMatrix.setScale(xScale1,yScale1);
-//        tempMatrix.postTranslate(checkedSeatBitmapX,y);
-//        canvas.drawBitmap(checkedSeatBitmap, tempMatrix, headPaint);
-//        canvas.drawText("已选", checkedSeatBitmapX + spacing1 + seatWidth, txtY, headPaint);
-
-        //绘制分割线
-        headPaint.setStrokeWidth(1);
-        headPaint.setColor(Color.GRAY);
-        canvas.drawLine(0, headHeight, getWidth(), headHeight, headPaint);
-        return bitmap;
-
-    }
+//
+//    Bitmap drawHeadInfo() {
+//        String txt = "已售";
+//        float txtY = getBaseLine(headPaint, 0, headHeight);
+//        int txtWidth = (int) headPaint.measureText(txt);
+//        float spacing = dip2Px(10);
+//        float spacing1 = dip2Px(5);
+//        float y = (headHeight - 40) / 2;
+//
+//        float width = 40 + spacing1 + txtWidth + spacing + 40 + txtWidth + spacing1 + spacing + 40 + spacing1 + txtWidth;
+//        Bitmap bitmap = Bitmap.createBitmap(getWidth(), (int) headHeight, Bitmap.Config.ARGB_8888);
+//
+//        Canvas canvas = new Canvas(bitmap);
+//
+//        //绘制背景
+//        canvas.drawRect(0, 0, getWidth(), headHeight, headPaint);
+//        headPaint.setColor(Color.BLACK);
+//
+//        float startX = (getWidth() - width) / 2;
+//        tempMatrix.setScale(xScale1,yScale1);
+//        tempMatrix.postTranslate(startX,(headHeight - seatHeight) / 2);
+////        canvas.drawBitmap(seatBitmap, tempMatrix, headPaint);
+//        canvas.drawText("可选", startX + seatWidth + spacing1, txtY, headPaint);
+//
+////        float soldSeatBitmapY = startX + seatBitmap.getWidth() + spacing1 + txtWidth + spacing;
+//        tempMatrix.setScale(xScale1,yScale1);
+////        tempMatrix.postTranslate(soldSeatBitmapY,(headHeight - seatHeight) / 2);
+////        canvas.drawBitmap(seatSoldBitmap, tempMatrix, headPaint);
+////        canvas.drawText("已租完", soldSeatBitmapY + seatWidth + spacing1, txtY, headPaint);
+//
+////        float checkedSeatBitmapX = soldSeatBitmapY + seatSoldBitmap.getWidth() + spacing1 + txtWidth + spacing;
+//        tempMatrix.setScale(xScale1,yScale1);
+////        tempMatrix.postTranslate(checkedSeatBitmapX,y);
+////        canvas.drawBitmap(checkedSeatBitmap, tempMatrix, headPaint);
+////        canvas.drawText("已选", checkedSeatBitmapX + spacing1 + seatWidth, txtY, headPaint);
+//
+//        //绘制分割线
+//        headPaint.setStrokeWidth(1);
+//        headPaint.setColor(Color.GRAY);
+//        canvas.drawLine(0, headHeight, getWidth(), headHeight, headPaint);
+//        return bitmap;
+//
+//    }
 
     Matrix tempMatrix = new Matrix();
 

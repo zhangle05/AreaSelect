@@ -1,6 +1,7 @@
 package org.aiit.shapemodel;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -13,18 +14,37 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class AbstractShape {
-    protected int id;
+    protected String id;
     protected String name;
     protected RectF bound = new RectF();
+    protected boolean selectable = true;
+    protected boolean selected = false;
+    protected boolean available = true;
+    protected Paint defaultPaint;
     protected InvalidateCallback invalidateCallback;
 
-    public AbstractShape(int id) {
+    public AbstractShape(String id) {
         this.id = id;
         ShapeUtil.addShape(this);
+        defaultPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        defaultPaint.setStyle(Paint.Style.FILL);
+        defaultPaint.setColor(Color.parseColor("#e2e2e2"));
     }
 
     public String getName() {
         return name;
+    }
+
+    public void setSelectable(boolean selectable) {
+        this.selectable = selectable;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public void setAvailable(boolean available) {
+        this.available = available;
     }
 
     public void setName(String name) {
@@ -34,7 +54,7 @@ public abstract class AbstractShape {
     public void setBound(RectF rect) {
         this.bound = rect;
     }
-    public void setBound(int left, int top, int width, int height) {
+    public void setBound(float left, float top, float width, float height) {
         bound.set(left, top, left + width, top + height);
     }
     public float setBoundLimit(int maxWidth, int maxHeight) {
@@ -56,9 +76,14 @@ public abstract class AbstractShape {
         if (boundJson != null) {
             bound.set(boundJson.optInt("left"), boundJson.optInt("top"), boundJson.optInt("right"), boundJson.optInt("bottom"));
         }
+        this.available = json.optBoolean("available");
     }
 
-    public abstract void draw(Canvas canvas, Matrix transform, Paint paint);
+    public void drawLegend(Canvas canvas, RectF bound) {
+        // Root shapes should override this method to draw legend
+    }
+
+    public abstract void draw(Canvas canvas, Matrix transform);
 
     public interface InvalidateCallback {
         void invalidate(Rect area);

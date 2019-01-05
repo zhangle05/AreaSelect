@@ -14,15 +14,17 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class CommunityShape extends AbstractShape {
     private Bitmap bgBitmap;
     private String bgImageUrl;
     private float bgScale = 0;
     private List<BuildingSiteShape> buildingSiteShapeList = new ArrayList<BuildingSiteShape>();
+    private List<BuildingSiteShape> legendList;
     private final Handler handler = new Handler();
 
-    public CommunityShape(int id) {
+    public CommunityShape(String id) {
         super(id);
     }
 
@@ -65,7 +67,7 @@ public class CommunityShape extends AbstractShape {
         JSONArray arr = json.optJSONArray("buildingSiteShapeList");
         for (int i = 0; i < arr.length(); i++) {
             JSONObject buildingSiteJson = arr.getJSONObject(i);
-            int id = buildingSiteJson.optInt("id");
+            String id = buildingSiteJson.optString("id");
             BuildingSiteShape shape = new BuildingSiteShape(id);
             shape.initWithJson(buildingSiteJson);
             this.buildingSiteShapeList.add(shape);
@@ -73,13 +75,13 @@ public class CommunityShape extends AbstractShape {
     }
 
     @Override
-    public void draw(Canvas canvas, Matrix transform, Paint paint) {
+    public void draw(Canvas canvas, Matrix transform) {
         if (bgBitmap == null) {
             return;
         }
         if (transform == null) {
             Rect src = new Rect(0, 0, bgBitmap.getWidth(), bgBitmap.getHeight());
-            canvas.drawBitmap(bgBitmap, src, super.bound, paint);
+            canvas.drawBitmap(bgBitmap, src, super.bound, defaultPaint);
         } else {
             if (bgScale <= 0) {
                 float xRatio = super.bound.width() / bgBitmap.getWidth();
@@ -92,12 +94,46 @@ public class CommunityShape extends AbstractShape {
                 m.postConcat(transform);
                 transform = m;
             }
-            canvas.drawBitmap(bgBitmap, transform, paint);
+            canvas.drawBitmap(bgBitmap, transform, defaultPaint);
         }
         if (buildingSiteShapeList != null) {
             for (BuildingSiteShape s : buildingSiteShapeList) {
-                s.draw(canvas, transform, paint);
+                s.draw(canvas, transform);
             }
         }
     }
+
+    @Override
+    public void drawLegend(Canvas canvas, RectF bound) {
+        if (legendList == null) {
+            legendList = new ArrayList<BuildingSiteShape>();
+            float width = bound.width() / 7;
+            float height = bound.height() / 2;
+            float top = bound.top + bound.height() / 4;
+
+            BuildingSiteShape available = new BuildingSiteShape(UUID.randomUUID().toString());
+            available.setName("可选");
+            available.setSelectable(false);
+            available.setBound(bound.left + width, top, width, height);
+            legendList.add(available);
+
+            BuildingSiteShape rentOut = new BuildingSiteShape(UUID.randomUUID().toString());
+            rentOut.setName("已租完");
+            rentOut.setSelectable(false);
+            rentOut.setAvailable(false);
+            rentOut.setBound(bound.left + width * 3, top, width, height);
+            legendList.add(rentOut);
+
+            BuildingSiteShape selected = new BuildingSiteShape(UUID.randomUUID().toString());
+            selected.setName("已选择");
+            selected.setSelectable(false);
+            selected.setSelected(true);
+            selected.setBound(bound.left + width * 5, top, width, height);
+            legendList.add(selected);
+        }
+        for (BuildingSiteShape s : legendList) {
+            s.draw(canvas, null);
+        }
+    }
+
 }
