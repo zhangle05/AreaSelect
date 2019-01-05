@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 AbstractShape selected = community.getSelectedShape();
                 if (selected == null) {
-                    Toast.makeText(MainActivity.this, "请先选择楼栋", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "请先选择楼号", Toast.LENGTH_LONG).show();
                     return;
                 }
                 Intent intent = new Intent(MainActivity.this, FloorActivity.class);
