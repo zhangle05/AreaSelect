@@ -72,7 +72,7 @@ public class FloorShape extends AbstractShape {
             if (transform != null) {
                 transform.mapRect(drawRect);
             }
-            String waitingText = super.name + "小区图片加载中，请稍等......";
+            String waitingText = super.name + "图片加载中，请稍等......";
             float textSize1 = super.bound.height() / 2;
             float textSize2 = super.bound.width() / waitingText.length();
             float textSize = (textSize1 < textSize2 ? textSize1 : textSize2)  * (drawRect.width() / super.bound.width());
