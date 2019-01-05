@@ -20,6 +20,7 @@ import java.util.UUID;
 
 public class CommunityShape extends AbstractShape {
     private Paint infoPaint;
+    private Paint textPaint;
     private Bitmap bgBitmap;
     private String bgImageUrl;
     private float bgScale = 0;
@@ -33,6 +34,9 @@ public class CommunityShape extends AbstractShape {
         infoPaint.setColor(Color.BLACK);
         Typeface infoFont = Typeface.create("黑体", Typeface.BOLD);
         infoPaint.setTypeface(infoFont);
+        textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setColor(Color.BLACK);
+        textPaint.setTypeface(infoFont);
     }
 
     public String getBgImageUrl() {
@@ -84,6 +88,19 @@ public class CommunityShape extends AbstractShape {
     @Override
     public void draw(Canvas canvas, Matrix transform) {
         if (bgBitmap == null) {
+            RectF drawRect = new RectF(super.bound);
+            if (transform != null) {
+                transform.mapRect(drawRect);
+            }
+            String waitingText = super.name + "小区图片加载中，请稍等......";
+            float textSize1 = super.bound.height() / 2;
+            float textSize2 = super.bound.width() / waitingText.length();
+            float textSize = (textSize1 < textSize2 ? textSize1 : textSize2)  * (drawRect.width() / super.bound.width());
+            textPaint.setTextSize(textSize);
+            float txtWidth = textPaint.measureText(waitingText);
+            float x = drawRect.left + (drawRect.width() - txtWidth) / 2;
+            float y = drawRect.bottom - (drawRect.height() - textSize) / 2;
+            canvas.drawText(waitingText, x, y, textPaint);
             return;
         }
         if (transform == null) {
