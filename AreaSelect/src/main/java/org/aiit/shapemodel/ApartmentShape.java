@@ -7,21 +7,20 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BuildingSiteShape extends AbstractShape {
+public class ApartmentShape extends AbstractShape {
     private Paint textPaint;
     private Paint boundPaint;
     private Typeface textFont;
     private Typeface selectedTextFont;
     private RectF drawRect;
 
-    public BuildingSiteShape(String id, ShapeManager mgr) {
+    public ApartmentShape(String id, ShapeManager mgr) {
         super(id, mgr);
         boundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         boundPaint.setColor(Color.BLACK);

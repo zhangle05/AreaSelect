@@ -10,11 +10,11 @@ import android.graphics.RectF;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 public abstract class AbstractShape {
     protected String id;
+    protected ShapeManager mgr;
     protected String name;
     protected RectF bound = new RectF();
     protected boolean selectable = true;
@@ -23,12 +23,17 @@ public abstract class AbstractShape {
     protected Paint defaultPaint;
     protected InvalidateCallback invalidateCallback;
 
-    public AbstractShape(String id) {
+    public AbstractShape(String id, ShapeManager mgr) {
         this.id = id;
-        ShapeUtil.addShape(this);
+        this.mgr = mgr;
+        mgr.addShape(this);
         defaultPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         defaultPaint.setStyle(Paint.Style.FILL);
         defaultPaint.setColor(Color.parseColor("#e2e2e2"));
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getName() {
@@ -68,6 +73,10 @@ public abstract class AbstractShape {
 
     public void setInvalidateCallback(InvalidateCallback invalidateCallback) {
         this.invalidateCallback = invalidateCallback;
+        List<AbstractShape> children = getChildren();
+        for (AbstractShape s : children) {
+            s.setInvalidateCallback(invalidateCallback);
+        }
     }
 
     public void initWithJson(JSONObject json) throws JSONException {
@@ -97,6 +106,8 @@ public abstract class AbstractShape {
     public abstract void draw(Canvas canvas, Matrix transform);
 
     public abstract boolean onSingleTap(float x, float y);
+
+    public abstract List<AbstractShape> getChildren();
 
     public interface InvalidateCallback {
         void invalidate(Rect area);

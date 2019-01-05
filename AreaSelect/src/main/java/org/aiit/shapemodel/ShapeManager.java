@@ -15,22 +15,35 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class ShapeUtil {
+public class ShapeManager {
 
-    private static Map<String, AbstractShape> S_SHAPE_MAP = new HashMap<String, AbstractShape>();
+    private Map<String, AbstractShape> S_SHAPE_MAP = new HashMap<String, AbstractShape>();
 
-    public static void addShape(AbstractShape shape) {
+    public void addShape(AbstractShape shape) {
         if (S_SHAPE_MAP.containsKey(shape.id)) {
             throw new IllegalStateException("Shape ID '" + shape.id + "' duplicate");
         }
         S_SHAPE_MAP.put(shape.id, shape);
     }
 
-    public static CommunityShape parseCommunity(String jsonStr) {
+    public CommunityShape parseCommunity(String jsonStr) {
         try {
             JSONObject json = new JSONObject(jsonStr);
             String id = json.optString("id");
-            CommunityShape result = new CommunityShape(id);
+            CommunityShape result = new CommunityShape(id, this);
+            result.initWithJson(json);
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public BuildingShape parseBuilding(String jsonStr) {
+        try {
+            JSONObject json = new JSONObject(jsonStr);
+            String id = json.optString("id");
+            BuildingShape result = new BuildingShape(id, this);
             result.initWithJson(json);
             return result;
         } catch (Exception e) {

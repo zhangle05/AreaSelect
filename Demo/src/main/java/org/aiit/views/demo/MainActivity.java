@@ -1,5 +1,6 @@
 package org.aiit.views.demo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -9,10 +10,10 @@ import android.widget.Toast;
 
 import org.aiit.shapemodel.AbstractShape;
 import org.aiit.shapemodel.CommunityShape;
-import org.aiit.shapemodel.ShapeUtil;
+import org.aiit.shapemodel.ShapeManager;
 
 public class MainActivity extends AppCompatActivity {
-    public org.aiit.widgets.AreaSelectView areaSelectView;
+    public org.aiit.widgets.AreaSelectView communityView;
     /**
      * community sample json:
      * {
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        areaSelectView = (org.aiit.widgets.AreaSelectView) findViewById(R.id.seatView);
+        communityView = (org.aiit.widgets.AreaSelectView) findViewById(R.id.communityView);
         String communityJson = "{\n" +
                 "    \"id\":\"1\",\n" +
                 "    \"name\":\"立涛园\",\n" +
@@ -118,8 +119,9 @@ public class MainActivity extends AppCompatActivity {
                 "        }\n" +
                 "    ]\n" +
                 "}";
-        community = ShapeUtil.parseCommunity(communityJson);
-        areaSelectView.setRootShape(community);
+        ShapeManager mgr = new ShapeManager();
+        community = mgr.parseCommunity(communityJson);
+        communityView.setRootShape(community);
 
         btnNext = (Button)findViewById(R.id.next);
         btnNext.setOnClickListener(new View.OnClickListener() {
@@ -134,7 +136,9 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "请先选择楼栋", Toast.LENGTH_LONG).show();
                     return;
                 }
-                Toast.makeText(MainActivity.this, "已选择：" + selected.getName(), Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(MainActivity.this, FloorActivity.class);
+                intent.putExtra("BUILDING_ID", selected.getId());
+                startActivity(intent);
             }
         });
     }

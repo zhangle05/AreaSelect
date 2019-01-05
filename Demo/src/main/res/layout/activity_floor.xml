@@ -10,17 +10,17 @@
     android:paddingTop="@dimen/activity_vertical_margin">
 
     <org.aiit.widgets.AreaSelectView
-        android:id="@+id/communityView"
+        android:id="@+id/floorView"
         android:background="#ffffff"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/next"
+        android:id="@+id/done"
         android:layout_width="200dp"
         android:layout_height="50dp"
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
-        android:text="下一步"/>
+        android:text="提交"/>
 
 </RelativeLayout>

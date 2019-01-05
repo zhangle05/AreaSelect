@@ -27,9 +27,9 @@ public class CommunityShape extends AbstractShape {
     private List<BuildingSiteShape> legendList;
     private final Handler handler = new Handler();
 
-    public CommunityShape(String id) {
-        super(id);
-        infoPaint = new Paint();
+    public CommunityShape(String id, ShapeManager mgr) {
+        super(id, mgr);
+        infoPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         infoPaint.setColor(Color.BLACK);
         Typeface infoFont = Typeface.create("黑体", Typeface.BOLD);
         infoPaint.setTypeface(infoFont);
@@ -41,7 +41,7 @@ public class CommunityShape extends AbstractShape {
 
     public void setBgImageUrl(String bgImageUrl) {
         this.bgImageUrl = bgImageUrl;
-        ShapeUtil.getBitmapFromURL(bgImageUrl, new ShapeUtil.LoadBitmapCallback() {
+        ShapeManager.getBitmapFromURL(bgImageUrl, new ShapeManager.LoadBitmapCallback() {
             @Override
             public void bitmapLoaded(final Bitmap bitmap) {
                 handler.post(new Runnable() {
@@ -59,7 +59,7 @@ public class CommunityShape extends AbstractShape {
     public void initWithJson(JSONObject json) throws JSONException {
         super.initWithJson(json);
         this.bgImageUrl = json.optString("bgImageUrl");
-        ShapeUtil.getBitmapFromURL(bgImageUrl, new ShapeUtil.LoadBitmapCallback() {
+        ShapeManager.getBitmapFromURL(bgImageUrl, new ShapeManager.LoadBitmapCallback() {
             @Override
             public void bitmapLoaded(final Bitmap bitmap) {
                 handler.post(new Runnable() {
@@ -75,7 +75,7 @@ public class CommunityShape extends AbstractShape {
         for (int i = 0; i < arr.length(); i++) {
             JSONObject buildingSiteJson = arr.getJSONObject(i);
             String id = buildingSiteJson.optString("id");
-            BuildingSiteShape shape = new BuildingSiteShape(id);
+            BuildingSiteShape shape = new BuildingSiteShape(id, mgr);
             shape.initWithJson(buildingSiteJson);
             this.buildingSiteShapeList.add(shape);
         }
@@ -118,20 +118,20 @@ public class CommunityShape extends AbstractShape {
             float height = bound.height() / 1.5F;
             float top = bound.top + 5;
 
-            BuildingSiteShape available = new BuildingSiteShape(UUID.randomUUID().toString());
+            BuildingSiteShape available = new BuildingSiteShape(UUID.randomUUID().toString(), mgr);
             available.setName("可选");
             available.setSelectable(false);
             available.setBound(bound.left + width, top, width, height);
             legendList.add(available);
 
-            BuildingSiteShape rentOut = new BuildingSiteShape(UUID.randomUUID().toString());
+            BuildingSiteShape rentOut = new BuildingSiteShape(UUID.randomUUID().toString(), mgr);
             rentOut.setName("已租完");
             rentOut.setSelectable(false);
             rentOut.setAvailable(false);
             rentOut.setBound(bound.left + width * 3, top, width, height);
             legendList.add(rentOut);
 
-            BuildingSiteShape selected = new BuildingSiteShape(UUID.randomUUID().toString());
+            BuildingSiteShape selected = new BuildingSiteShape(UUID.randomUUID().toString(), mgr);
             selected.setName("已选择");
             selected.setSelectable(false);
             selected.setSelected(true);
@@ -182,6 +182,13 @@ public class CommunityShape extends AbstractShape {
             }
         }
         return false;
+    }
+
+    @Override
+    public List<AbstractShape> getChildren() {
+        List<AbstractShape> children = new ArrayList<AbstractShape>();
+        children.addAll(buildingSiteShapeList);
+        return children;
     }
 
 }
