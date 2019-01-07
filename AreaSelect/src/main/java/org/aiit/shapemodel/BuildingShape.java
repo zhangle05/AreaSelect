@@ -34,6 +34,15 @@ public class BuildingShape extends AbstractShape {
         }
         if (floorShapeList.size() > 0) {
             curFloor = floorShapeList.get(0);
+            curFloor.setShapeSelectCallback(this.shapeSelectCallback);
+        }
+    }
+
+    @Override
+    public void setShapeSelectCallback(ShapeSelectCallback shapeSelectCallback) {
+        super.setShapeSelectCallback(shapeSelectCallback);
+        if (curFloor != null) {
+            curFloor.setShapeSelectCallback(shapeSelectCallback);
         }
     }
 

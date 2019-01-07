@@ -23,4 +23,9 @@
         android:layout_alignParentBottom="true"
         android:text="提交"/>
 
+    <TextView
+        android:id="@+id/selectInfo"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_above="@id/done"/>
 </RelativeLayout>

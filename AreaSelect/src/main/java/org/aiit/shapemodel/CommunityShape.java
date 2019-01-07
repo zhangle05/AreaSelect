@@ -195,6 +195,13 @@ public class CommunityShape extends AbstractShape {
         }
         for (BuildingSiteShape s : buildingSiteShapeList) {
             if (s.onSingleTap(x, y)) {
+                try {
+                    if (shapeSelectCallback != null) {
+                        shapeSelectCallback.shapeSelected(s);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
                 return true;
             }
         }

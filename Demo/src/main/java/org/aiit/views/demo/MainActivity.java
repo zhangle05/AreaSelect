@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
      * }
      */
     private CommunityShape community;
+    private TextView txtInfo;
     private Button btnNext;
 
     @Override
@@ -122,6 +124,14 @@ public class MainActivity extends AppCompatActivity {
         ShapeManager mgr = new ShapeManager();
         community = mgr.parseCommunity(communityJson);
         communityView.setRootShape(community);
+
+        txtInfo = (TextView)findViewById(R.id.selectInfo);
+        community.setShapeSelectCallback(new AbstractShape.ShapeSelectCallback() {
+            @Override
+            public void shapeSelected(AbstractShape selectedShape) {
+                txtInfo.setText("已选楼栋：" + selectedShape.getName());
+            }
+        });
 
         btnNext = (Button)findViewById(R.id.next);
         btnNext.setOnClickListener(new View.OnClickListener() {

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.aiit.shapemodel.AbstractShape;
@@ -80,6 +81,7 @@ public class FloorActivity extends AppCompatActivity {
      * }
      */
     private BuildingShape building;
+    private TextView txtInfo;
     private Button btnDone;
 
     @Override
@@ -156,6 +158,17 @@ public class FloorActivity extends AppCompatActivity {
         ShapeManager mgr = new ShapeManager();
         building = mgr.parseBuilding(buildingJson);
         floorView.setRootShape(building);
+
+        txtInfo = (TextView)findViewById(R.id.selectInfo);
+        building.setShapeSelectCallback(new AbstractShape.ShapeSelectCallback() {
+            @Override
+            public void shapeSelected(AbstractShape selectedShape) {
+                String name = selectedShape.getName();
+                String id = selectedShape.getId();
+                // TODO: 根据ID获取面积和租金
+                txtInfo.setText("已选房号：" + name + "，xx平方米，xx元");
+            }
+        });
 
         btnDone = (Button)findViewById(R.id.done);
         btnDone.setOnClickListener(new View.OnClickListener() {

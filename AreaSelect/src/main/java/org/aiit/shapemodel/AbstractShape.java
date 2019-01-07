@@ -22,6 +22,7 @@ public abstract class AbstractShape {
     protected boolean available = true;
     protected Paint defaultPaint;
     protected InvalidateCallback invalidateCallback;
+    protected ShapeSelectCallback shapeSelectCallback;
 
     public AbstractShape(String id, ShapeManager mgr) {
         this.id = id;
@@ -79,6 +80,10 @@ public abstract class AbstractShape {
         }
     }
 
+    public void setShapeSelectCallback(ShapeSelectCallback shapeSelectCallback) {
+        this.shapeSelectCallback = shapeSelectCallback;
+    }
+
     public void initWithJson(JSONObject json) throws JSONException {
         this.name = json.optString("name");
         JSONObject boundJson = json.optJSONObject("bound");
@@ -112,5 +117,9 @@ public abstract class AbstractShape {
     public interface InvalidateCallback {
         void invalidate(Rect area);
         void invalidate();
+    }
+
+    public interface ShapeSelectCallback {
+        void shapeSelected(AbstractShape selectedShape);
     }
 }

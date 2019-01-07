@@ -175,6 +175,13 @@ public class FloorShape extends AbstractShape {
         }
         for (ApartmentShape s : apartmentShapeList) {
             if (s.onSingleTap(x, y)) {
+                try {
+                    if (shapeSelectCallback != null) {
+                        shapeSelectCallback.shapeSelected(s);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
                 return true;
             }
         }
